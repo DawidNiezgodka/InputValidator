@@ -2726,7 +2726,7 @@ exports["default"] = _default;
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(127)
-const { wait } = __nccwpck_require__(692)
+
 
 async function run() {
   try {
@@ -2831,14 +2831,6 @@ async function run() {
 module.exports = {
   run
 }
-
-
-/***/ }),
-
-/***/ 692:
-/***/ ((module) => {
-
-module.exports = eval("require")("./wait");
 
 
 /***/ }),
