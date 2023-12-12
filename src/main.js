@@ -1,5 +1,5 @@
 const core = require('@actions/core')
-
+const { validateInputAndFetchConfig } = require('./config')
 
 async function run() {
   try {
@@ -62,83 +62,39 @@ async function run() {
     const eval_trend_det_no_sufficient_data_strategy = core.getInput('eval_trend_det_no_sufficient_data_strategy')
     const eval_trend_det_successful_release_branch = core.getInput('eval_trend_det_successful_release_branch')
     const evalResultFilesMergeStrategyForEachMetric = core.getInput('eval_result_files_merge_strategy_for_each_metric')
+    const numberOfMetricToEvaluate = core.getInput('number_of_metrics_to_evaluate')
 
-    // deploy_lock_id must be a string
     if (deployLockId && typeof deployLockId !== 'string') {
       core.setFailed('deploy_lock_id must be a string')
     }
 
-    // snr_execution_order must be a string (for example, "deploy" or a comma separated string "deploy, run"
     if (snrExecutionOrder && typeof snrExecutionOrder !== 'string') {
       core.setFailed('snr_execution_order must be a string')
     }
 
-    // deploy_vars_file_path must have .tfvars extension
     if (deploy_vars_file_path && !deploy_vars_file_path.endsWith('.tfvars')) {
       core.setFailed('deploy_vars_file_path must have .tfvars extension')
     }
-
 
     if (evalBucketResultsFolderPath && !evalResultFilesMergeStrategyForEachMetric) {
       core.setFailed('eval_result_files_merge_strategy_for_each_metric must be set if eval_bucket_results_folder_path is set')
     }
 
-    if (evalEvaluationMethod === 'threshold' && (!evalThresholdValues || !evalComparisonOperators || !evalComparisonMargins)) {
-      core.setFailed('eval_threshold_values, eval_comparison_operators, and eval_comparison_margins must be set if eval_evaluation_method is set to thresholds')
-    }
-
-    if (evalEvaluationMethod === 'threshold_range' && (!evalThresholdUpper || !evalThresholdLower)) {
-      core.setFailed('eval_threshold_upper and eval_threshold_lower must be set if eval_evaluation_method is set to threshold_range')
-    }
-
-    if (evalEvaluationMethod === 'previous' || evalEvaluationMethod === 'previous_successful') {
-      if (!evalComparisonOperators || !evalComparisonMargins) {
-        core.setFailed('eval_comparison_operators and eval_comparison_margins must be set if eval_evaluation_method is set to previous or previous_successful')
-      }
-
-
-      if (evalBenchGroupToCompare) {
-        const benchData = module.exports.getCompleteBenchData(evalPreviousDataStorageFolder, fileNameWithBenchData)
-
-        if (!benchData) {
-          core.setFailed(`The file ${evalBenchGroupToCompare} does not exist in the data folder`)
-        }
+    if (evalBucketResultsFolderPath && evalResultFilesMergeStrategyForEachMetric) {
+      const evalResultFilesMergeStrategyForEachMetricArray = evalResultFilesMergeStrategyForEachMetric.split(',').map(s => s.trim())
+      if (evalResultFilesMergeStrategyForEachMetricArray.length !== parseInt(numberOfMetricToEvaluate)) {
+        core.setFailed('eval_result_files_merge_strategy_for_each_metric must have the same number of strategies as the number of metrics to evaluate')
       }
     }
+
+    module.exports.validateInputAndFetchConfig()
+
+
 
 
 
   } catch (error) {
     core.setFailed(error.message)
-  }
-}
-
-module.exports.getCompleteBenchData = function (
-  folderWithBenchData,
-  fileNameWithBenchData
-)  {
-  core.debug('--- start getCompleteBenchData ---')
-  core.debug('folderWithBenchData: ' + folderWithBenchData)
-  core.debug('fileNameWithBenchData: ' + fileNameWithBenchData)
-  const filePath = path.join(folderWithBenchData, fileNameWithBenchData)
-
-  try {
-    const fileText = fss.readFileSync(filePath, 'utf8')
-
-    const benchmarkData = JSON.parse(fileText)
-
-    if (!benchmarkData || Object.keys(benchmarkData).length === 0) {
-      console.error('BENCHMARK_DATA is empty')
-      return null
-    }
-
-    core.debug('--- end getCompleteBenchData ---')
-    return benchmarkData;
-  } catch (error) {
-    console.error(`There was an error reading the file at ${filePath}.
-       If the file exists, it might be empty. The function will return null.`)
-    console.error('The actual error was:', error)
-    return null
   }
 }
 

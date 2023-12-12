@@ -12,6 +12,10 @@ inputs:
       with the directory name.
       If you don't want this behaviour, you can use the snr_directory and deploy_directory inputs.
     required: false
+  number_of_metrics_to_evaluate:
+    description: |
+      The number of metrics that will be evaluated
+    required: false
   #####
   # Deployment inputs
   #####

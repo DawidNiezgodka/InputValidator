@@ -2722,11 +2722,740 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 790:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(127)
+const { promises: fs } = __nccwpck_require__(147)
+const fss = __nccwpck_require__(147)
+const path = __nccwpck_require__(17)
+const {
+  CompleteBenchmark,
+  SimpleMetricResult,
+  Commit,
+  BenchmarkInfo
+} = __nccwpck_require__(668)
+
+module.exports.addCompleteBenchmarkToFile = async (
+  benchmarkInstance,
+  folderWithBenchData,
+  fileWithBenchData,
+  evaluationResult,
+  evaluationParams,
+  evaluationConfig
+) => {
+  try {
+    let jsonData
+    const pathToPreviousDataFile = path.join(
+      folderWithBenchData, fileWithBenchData
+    )
+    core.debug('--- start addCompleteBenchmarkToFile ---')
+    core.debug(`Reading file at ${pathToPreviousDataFile}`)
+    try {
+      const data = await fs.readFile(pathToPreviousDataFile, 'utf8')
+      //core.debug('Read file: ' + data) // -> can be very long...
+      jsonData = JSON.parse(data)
+    } catch (err) {
+      core.debug(
+        `Could not find file at ${pathToPreviousDataFile}. Initializing with default data.`
+      )
+      jsonData = {
+        lastUpdate: Date.now(),
+        repoUrl: '',
+        entries: {}
+      }
+    }
+
+    jsonData.lastUpdate = Date.now()
+
+    const newBenchmarkJSON = {
+      commit: benchmarkInstance.commitInfo,
+      date: Date.now(),
+      executionTime: benchmarkInstance.benchmarkInfo.executionTime,
+      parametrization: benchmarkInstance.benchmarkInfo.parametrization,
+      otherInfo: benchmarkInstance.benchmarkInfo.otherInfo,
+      metrics: benchmarkInstance.simpleMetricResults.map(metric => ({
+        name: metric.name,
+        value: metric.value,
+        unit: metric.unit
+      })),
+      benchSuccessful: benchmarkInstance.benchSuccessful,
+      evaluation: {
+        evaluationConfig: evaluationConfig,
+        evaluationParams: evaluationParams,
+        evaluationResult: evaluationResult
+      }
+
+    }
+
+    core.debug('-- addCompleteBenchmarkToFile -- Benchmark name: ' + benchmarkInstance.benchmarkName)
+    if (!jsonData.entries[benchmarkInstance.benchmarkName]) {
+      jsonData.entries[benchmarkInstance.benchmarkName] = []
+    }
+    jsonData.entries[benchmarkInstance.benchmarkName].push(newBenchmarkJSON)
+
+    await fs.writeFile(pathToPreviousDataFile, JSON.stringify(jsonData, null, 4), 'utf8')
+
+    core.debug('Successfully added new benchmark to file')
+    core.debug('--- end addCompleteBenchmarkToFile ---')
+  } catch (err) {
+    console.error('An error occurred:', err)
+  }
+}
+
+module.exports.getLatestBenchmark = function (
+  benchmarkName,
+  folderWithBenchData,
+  fileNameWithBenchData,
+  n,
+  successful = false
+)  {
+
+  core.debug('--- start getLatestBenchmark ---')
+
+  const sortedBenchmarkData = module.exports.getSortedBenchmarkData(
+    folderWithBenchData, fileNameWithBenchData, benchmarkName, n, successful
+  )
+
+  const nthLatestBenchmarkData = sortedBenchmarkData[n - 1]
+  core.debug(`nthLatestBenchmarkData.metrics ${JSON.stringify(nthLatestBenchmarkData)}`)
+  return convertBenchDataToCompleteBenchmarkInstance(nthLatestBenchmarkData, benchmarkName)
+
+}
+
+module.exports.getCompleteBenchData = function (
+  folderWithBenchData,
+  fileNameWithBenchData
+)  {
+  core.debug('--- start getCompleteBenchData ---')
+  core.debug('folderWithBenchData: ' + folderWithBenchData)
+  core.debug('fileNameWithBenchData: ' + fileNameWithBenchData)
+  const filePath = path.join(folderWithBenchData, fileNameWithBenchData)
+
+  try {
+    const fileText = fss.readFileSync(filePath, 'utf8')
+
+    const benchmarkData = JSON.parse(fileText)
+
+    if (!benchmarkData || Object.keys(benchmarkData).length === 0) {
+      console.error('BENCHMARK_DATA is empty')
+      return null
+    }
+
+    core.debug('--- end getCompleteBenchData ---')
+    return benchmarkData;
+  } catch (error) {
+    console.error(`There was an error reading the file at ${filePath}.
+       If the file exists, it might be empty. The function will return null.`)
+    console.error('The actual error was:', error)
+    return null
+  }
+}
+
+function convertBenchDataToCompleteBenchmarkInstance(data, benchmarkName) {
+  const exeTime = data.executionTime;
+  const parametrization = data.parametrization;
+  const otherInfo = data.otherInfo;
+  const benchmarkInfo = new BenchmarkInfo(exeTime, parametrization, otherInfo);
+  const benchSuccessful = data.benchSuccessful;
+
+  core.debug('-- convertBenchDataToCompleteBenchmarkInstance -- Benchmark name: ' + benchmarkName)
+  const simpleMetricResults = data.metrics.map(
+    metric => new SimpleMetricResult(metric.name, metric.value, metric.unit)
+  );
+
+  const commitInfo = new Commit(
+    data.commit.author,
+    data.commit.committer,
+    data.commit.id,
+    data.commit.message,
+    data.commit.timestamp,
+    data.commit.url
+  );
+
+  core.debug('--- end convertBenchDataToCompleteBenchmarkInstance ---')
+  return new CompleteBenchmark(
+    benchmarkName,
+    benchmarkInfo,
+    simpleMetricResults,
+    commitInfo,
+    benchSuccessful
+  );
+}
+
+module.exports.getNLatestBenchmarks = function (
+  benchmarkName,
+  folderWithBenchData,
+  fileNameWithBenchData,
+  n,
+  successful = false
+) {
+  core.debug('--- start getNLatestBenchmarks ---')
+  try {
+    const sortedBenchmarkData = module.exports.getSortedBenchmarkData(
+      folderWithBenchData, fileNameWithBenchData, benchmarkName, n, successful
+    )
+
+    const nthLatest = sortedBenchmarkData.slice(0, n).map(data => {
+      return convertBenchDataToCompleteBenchmarkInstance(data, benchmarkName);
+    });
+    core.debug(`nthLatest ${JSON.stringify(nthLatest)}`)
+    core.debug('--- end getNLatestBenchmarks ---')
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return null;
+  }
+}
+
+module.exports.getSortedBenchmarkData = function (folderWithBenchData, fileNameWithBenchData,
+                                                  benchmarkName, n, successful = false) {
+
+  core.debug('--- start getSortedBenchmarkData ---')
+  try {
+    const benchmarkData = module.exports.getCompleteBenchData(
+      folderWithBenchData, fileNameWithBenchData
+    );
+    if (!benchmarkData.entries.hasOwnProperty(benchmarkName)) {
+      console.error(
+        'No data available for the given benchmark name:',
+        benchmarkName
+      );
+      return null;
+    }
+
+    let sortedBenchmarkData = benchmarkData.entries[benchmarkName].sort(
+      (a, b) => b.date - a.date
+    );
+
+    if (successful) {
+      sortedBenchmarkData = sortedBenchmarkData.filter(entry => entry.benchSuccessful);
+    }
+
+    if (sortedBenchmarkData.length < n) {
+      console.error(`Less than ${n} ${successful ? 'successful ' : ''}benchmarks available`);
+      return null;
+    }
+
+    core.debug('--- end getSortedBenchmarkData (before returning) ---')
+    return sortedBenchmarkData;
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return null;
+  }
+}
+
+module.exports.getBenchFromWeekAgo = function (benchToCompare, folderWithBenchData, fileNameWithBenchData) {
+
+  core.debug('--- start getBenchFromWeekAgo ---')
+  const ONE_WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  let data = module.exports.getCompleteBenchData(
+    folderWithBenchData, fileNameWithBenchData
+  );
+
+  let benchmarks = data.entries[benchToCompare];
+  // Print the amount of benchmarks
+
+  let closestBenchmark = null;
+  let smallestDifference = Infinity;
+
+
+
+  benchmarks.forEach(benchmark => {
+    let difference = Math.abs(now - benchmark.date - ONE_WEEK_IN_MS);
+    if (difference < smallestDifference) {
+      smallestDifference = difference;
+      closestBenchmark = benchmark;
+    }
+  });
+
+  if (closestBenchmark === null) {
+    throw new Error(`No benchmark under '${benchToCompare}' is close to one week old.`);
+  } else {
+    core.debug(`The closest benchmark to one week old under '${benchToCompare}' is: ${closestBenchmark}`);
+    core.debug('--- end getBenchFromWeekAgo (before calling convertBenchData... ---')
+    return convertBenchDataToCompleteBenchmarkInstance(closestBenchmark, benchToCompare);
+  }
+}
+
+module.exports.getBenchmarkOfStableBranch = function (benchToCompare, folderWithBenchData,
+                                                      fileNameWithBenchData, latestBenchSha) {
+
+  core.debug('--- start getBenchmarkOfStableBranch ---')
+  let data = module.exports.getCompleteBenchData(
+    folderWithBenchData, fileNameWithBenchData
+  );
+  let benchmarks = data.entries[benchToCompare];
+  // find benchmark with commit sha == latestBenchSha
+  let benchmark = benchmarks.find(benchmark => benchmark.commit.id === latestBenchSha);
+  core.debug(`Benchmark of stable branch: ${JSON.stringify(benchmark)}`);
+
+  if (benchmark === undefined) {
+    throw new Error(`No benchmark under '${benchToCompare}' with commit sha ${latestBenchSha} found.`);
+  } else {
+    core.debug(`The benchmark of the stable branch under '${benchToCompare}' is: ${benchmark}`);
+    return convertBenchDataToCompleteBenchmarkInstance(benchmark, benchToCompare);
+  }
+}
+
+
+
+
+/***/ }),
+
+/***/ 827:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(127)
+const fs = __nccwpck_require__(147)
+const {getCompleteBenchData} = __nccwpck_require__(790)
+const path = __nccwpck_require__(17);
+
+module.exports.getBoolInput = function (inputName) {
+  const input = core.getInput(inputName)
+  if (!input) {
+    return false
+  }
+  if (input !== 'true' && input !== 'false') {
+    throw new Error(
+      `'${inputName}' input must be boolean value 'true' or 'false' but got '${input}'`
+    )
+  }
+  return input === 'true'
+}
+
+module.exports.validateInputAndFetchConfig = function () {
+  const benchGroupName = core.getInput('eval_eval_bench_group_name')
+  const failingCondition = core.getInput('eval_eval_failing_condition')
+  if (
+    failingCondition !== 'any' &&
+    failingCondition !== 'all' &&
+    failingCondition !== 'none'
+  ) {
+    throw new Error(
+      `Invalid failing condition: ${failingCondition}. Valid values are: any, all, none`
+    )
+  }
+
+  let benchGroupToCompare = core.getInput('eval_bench_group_to_compare')
+  if (benchGroupToCompare === '' || benchGroupToCompare === null) {
+    benchGroupToCompare = benchGroupName
+  }
+
+  const folderWithBenchData = core.getInput('eval_folder_with_bench_data')
+  const fileWithBenchData = core.getInput('eval_file_with_bench_data')
+  const itemCount = core.getInput('number_of_metrics_to_evaluate')
+  module.exports.validateAndFetchEvaluationConfig(itemCount, benchGroupToCompare,
+    folderWithBenchData, fileWithBenchData);
+
+  const githubToken = core.getInput('eval_github_token')
+
+   module.exports.validateAndGet('eval_comment_to_commit')
+   module.exports.validateAndGet('eval_action_page_job_summary')
+   module.exports.getBoolInput('eval_save_curr_bench_res')
+   module.exports.validateUsersToBeAlerted()
+   module.exports.validateLinkToTemplatedGhPageWithResults();
+
+}
+
+module.exports.validateLinkToTemplatedGhPageWithResults = function () {
+  const linkToTemplatedGhPageWithResults = core.getInput('eval_link_to_templated_gh_page_with_results');
+  // link must be https and have github.io in it
+  if (linkToTemplatedGhPageWithResults !== '') {
+    if (!linkToTemplatedGhPageWithResults.startsWith('https://')) {
+      throw new Error(`Link to templated gh page must start with 'https://' but got '${linkToTemplatedGhPageWithResults}'`);
+    }
+    if (!linkToTemplatedGhPageWithResults.includes('github.io')) {
+      throw new Error(`Link to templated gh page must contain 'github.io' but got '${linkToTemplatedGhPageWithResults}'`);
+    }
+  }
+  return linkToTemplatedGhPageWithResults;
+}
+
+module.exports.validateUsersToBeAlerted = function () {
+  let alertUsersIfBenchFailed = core.getInput('eval_alert_users_if_bench_failed');
+  if (alertUsersIfBenchFailed !== '') {
+    alertUsersIfBenchFailed = alertUsersIfBenchFailed.split(',').map(u => u.trim());
+    for (const u of alertUsersIfBenchFailed) {
+      if (!u.startsWith('@')) {
+        throw new Error(`User name in 'alert_users_if_bench_failed' input must start with '@' but got '${u}'`);
+      }
+    }
+  }
+  return alertUsersIfBenchFailed;
+}
+
+module.exports.validateAndGet = function (inputName) {
+  const input = core.getInput(inputName);
+  if (input !== 'on' && input !== 'off' && input !== 'if_failed') {
+    throw new Error(
+      `'${inputName}' input must be either 'on', 'off', or 'if_failed' but got '${input}'`
+    )
+  }
+  return input
+}
+
+module.exports.camelToSnake = function (string) {
+  return string
+    .replace(/\w([A-Z])/g, function (m) {
+      return m[0] + '_' + m[1]
+    })
+    .toLowerCase()
+}
+
+module.exports.validateAndFetchEvaluationConfig = function (currentResultLength,benchToCompare,
+                                                            folderWithBenchData, fileWithBenchData) {
+  // Evaluation method
+  const evaluationMethod = core.getInput('eval_evaluation_method', { required: true })
+  const validEvaluationMethods = [
+    'threshold',
+    'previous',
+    'previous_successful',
+    'threshold_range',
+    'jump_detection',
+    'trend_detection_moving_ave',
+    'trend_detection_deltas'
+  ]
+  if (!validEvaluationMethods.includes(evaluationMethod)) {
+    throw new Error(
+      `Invalid evaluation method: ${evaluationMethod}. Must be one of ${validEvaluationMethods.join(
+        ', '
+      )}`
+    )
+  }
+
+  let benchmarkData = getCompleteBenchData(folderWithBenchData, fileWithBenchData);
+  if (benchmarkData === null) {
+    core.info("No previous data found. Hence, the only valid evaluation method is threshold and threshold range." +
+      "The action will fail if the evaluation method is not one of these two.");
+    if (evaluationMethod !== 'threshold' && evaluationMethod !== 'threshold_range') {
+      throw new Error(
+        `Invalid evaluation method: ${evaluationMethod}. Must be one of threshold or threshold_range.`
+      )
+    }
+  }
+  switch (evaluationMethod) {
+    case 'threshold':
+      console.log('Validating threshold evaluation configuration.')
+      module.exports.validateOperatorsAndMargins(currentResultLength)
+      module.exports.validateThresholdConfig(currentResultLength)
+      break
+    case 'previous':
+      console.log('Validating previous evaluation configuration.')
+      module.exports.validateOperatorsAndMargins(currentResultLength)
+      module.exports.checkIfNthPreviousBenchmarkExists(benchmarkData, benchToCompare, 1);
+      break
+    case 'previous_successful':
+      console.log('Validating previous successful evaluation configuration.')
+      module.exports.validateOperatorsAndMargins(currentResultLength)
+      module.exports.checkIfPreviousSuccessfulExists(benchmarkData, benchToCompare);
+      break
+    case 'threshold_range':
+      console.log('Validating threshold range evaluation configuration.')
+      module.exports.validateThresholdRangeConfig(currentResultLength)
+      break
+    case 'jump_detection':
+      console.log('Validating jump detection evaluation configuration.')
+      module.exports.checkIfNthPreviousBenchmarkExists(benchmarkData, benchToCompare, 1);
+      module.exports.validateJumpDetectionConfig(currentResultLength)
+      break
+    case 'trend_detection_moving_ave':
+      core.debug('Validating trend detection with moving average evaluation configuration.')
+      module.exports.validateTrendDetectionMovingAveConfig(currentResultLength)
+      const movingAveWindowSize = core.getInput('eval_moving_ave_window_size')
+      try {
+        module.exports.checkIfNthPreviousBenchmarkExists(benchmarkData, benchToCompare,
+          movingAveWindowSize);
+      } catch (error) {
+        // Depending on the value of the trend_det_no_sufficient_data_strategry input,
+        // we either fail or use available data
+        const noSufficientDataStrategy = core.getInput('eval_trend_det_no_sufficient_data_strategy');
+        if (noSufficientDataStrategy === 'fail') {
+          throw error;
+        } else if (noSufficientDataStrategy === 'use_available') {
+          const numberOfBenchsForName = benchmarkData.entries[benchToCompare].length;
+          const stringOfNumberOfBenchs= numberOfBenchsForName.toString();
+          core.info(`Not enough data for trend detection with moving average. Using available data.`)
+          process.env[`INPUT_MOVING_AVE_WINDOW_SIZE`] = stringOfNumberOfBenchs;
+          const newVal = core.getInput('eval_moving_ave_window_size');
+          core.info(`New value for moving_ave_window: ${newVal}`)
+        } else {
+          throw new Error(`Invalid value for trend_det_no_sufficient_data_strategy: 
+                ${noSufficientDataStrategy}. Valid values are: fail, use_available_data.`)
+        }
+      }
+
+
+      break
+    case 'trend_detection_deltas':
+      module.exports.validateTrendThreshold(currentResultLength);
+      module.exports.checkForWeekOldBenchmark(benchmarkData, benchToCompare);
+      module.exports.checkIfNthPreviousBenchmarkExists(benchmarkData, benchToCompare,1);
+      break
+    default:
+      throw new Error(
+        `Unsupported evaluation method: ${evaluationMethod}`
+      )
+  }
+}
+
+module.exports.validateOperatorsAndMargins = function (currentResultLength) {
+  console.log('Validating operators and margins')
+  const comparisonOperatorsInput = core.getInput('eval_comparison_operators')
+  const comparisonMarginsInput = core.getInput('eval_comparison_margins')
+
+  if (!comparisonOperatorsInput || !comparisonMarginsInput) {
+    throw new Error('Comparison operators and margins must not be null.')
+  }
+  const comparisonOperators = comparisonOperatorsInput.split(',')
+  const comparisonMargins = comparisonMarginsInput.split(',').map(Number)
+  if (comparisonOperators.length !== currentResultLength) {
+    throw new Error(
+      `The number of comparison operators must be equal to ${currentResultLength}.`
+    )
+  }
+  if (comparisonMargins.length !== currentResultLength) {
+    throw new Error(
+      `The number of comparison margins must be equal to ${currentResultLength}.`
+    )
+  }
+  const validOperators = ['smaller', 'bigger', 'tolerance']
+  comparisonOperators.forEach(operator => {
+    if (!validOperators.includes(operator.trim())) {
+      throw new Error(
+        `Invalid comparison operator: ${operator}. Valid operators are: ${validOperators.join(
+          ', '
+        )}.`
+      )
+    }
+  })
+
+  const validMargins = comparisonMargins.every(
+    margin => margin === -1 || (margin >= 0 && margin <= 100)
+  )
+  if (!validMargins) {
+    throw new Error('Comparison margins must be in the range [-1, 100].')
+  }
+}
+
+module.exports.validateThresholdConfig = function (currentResultLength) {
+  console.log('Validating threshold config')
+  const thresholdValuesInput = core.getInput('eval_threshold_values')
+  const thresholdValues = thresholdValuesInput
+    .split(',')
+    .map(value => value.trim())
+
+  if (thresholdValues.length !== currentResultLength) {
+    throw new Error(
+      `The number of threshold values (${thresholdValues.length}) must match the number of metrics (${currentResultLength}).`
+    )
+  }
+}
+module.exports.validateThresholdRangeConfig = function (currentResultLength) {
+  const thresholdUpperInput = core.getInput('eval_threshold_upper');
+  const thresholdLowerInput = core.getInput('eval_threshold_lower');
+
+  if (!thresholdUpperInput || !thresholdLowerInput) {
+    throw new Error(
+      'Threshold range values are required for the threshold_range evaluation method.'
+    );
+  }
+
+  const thresholdUpper = thresholdUpperInput.split(',').map(Number);
+  const thresholdLower = thresholdLowerInput.split(',').map(Number);
+
+  if (thresholdUpper.length !== thresholdLower.length) {
+    throw new Error(
+      'The number of upper thresholds must match the number of lower thresholds.'
+    );
+  }
+
+  if (thresholdUpper.length !== currentResultLength) {
+    throw new Error(
+      'The number of thresholds must match the number of results.'
+    );
+  }
+
+  for (let i = 0; i < thresholdUpper.length; i++) {
+    if (thresholdUpper[i] < 0 || thresholdLower[i] < 0) {
+      throw new Error(
+        'Threshold values must be non-negative numbers.'
+      );
+    }
+
+    if (thresholdUpper[i] <= thresholdLower[i]) {
+      throw new Error(
+        'Each upper threshold must be greater than its corresponding lower threshold.'
+      );
+    }
+  }
+}
+
+module.exports.validateJumpDetectionConfig = function (currentResultLength) {
+  const jumpDetectionThresholdsInput = core.getInput('eval_jump_detection_thresholds')
+
+  if (jumpDetectionThresholdsInput.trim() === '') {
+    throw new Error('Jump detection threshold must be provided.')
+  }
+
+  const jumpDetectionThresholds = jumpDetectionThresholdsInput.split(',').map(Number)
+
+  if (jumpDetectionThresholds.length !== currentResultLength) {
+    throw new Error(
+      'The number of jump det thresholds must match the number metrics.'
+    )
+  }
+  jumpDetectionThresholds.forEach(value => {
+    if (value < 0 || value > 100) {
+      throw new Error(`Value ${value} is out of range [0,100]`);
+    }
+  });
+
+  return jumpDetectionThresholds
+}
+
+module.exports.validateTrendThreshold = function (currentResultLength) {
+  const trendThresholds = core.getInput('eval_trend_thresholds')
+
+  if (trendThresholds == null) {
+    throw new Error(
+      'Both movingAveWindowSize and trendThresholds must be provided for trend detection with moving average.'
+    )
+  }
+
+  const movingAveThresholdValue = trendThresholds.split(',').map(Number)
+
+  if (movingAveThresholdValue.length !== currentResultLength) {
+    throw new Error(
+      'The number of upper thresholds must match the number metrics.'
+    )
+  }
+  movingAveThresholdValue.forEach(value => {
+    if (value < 0 || value > 100) {
+      throw new Error(`Value ${value} is out of range [0,100]`);
+    }
+  });
+}
+
+module.exports.validateTrendDetectionMovingAveConfig = function (currentResultLength) {
+  module.exports.validateTrendThreshold(currentResultLength);
+
+  // window size part
+  const movingAveWindowSize = core.getInput('eval_moving_ave_window_size')
+  if (movingAveWindowSize == null) {
+    throw new Error(
+      'Both movingAveWindowSize must be provided for trend detection with moving average.'
+    )
+  }
+
+}
+
+module.exports.checkIfNthPreviousBenchmarkExists = function (
+  benchmarkData,
+  benchmarkName,
+  numberOfBenchmarks
+) {
+  console.log(
+    `Checking if benchmark "${benchmarkName}" has ${numberOfBenchmarks} previous entries.`
+  )
+
+  if (!benchmarkData.entries.hasOwnProperty(benchmarkName)) {
+    throw new Error(`No benchmarks found with the name "${benchmarkName}"`)
+  }
+
+  const benchmarks = benchmarkData.entries[benchmarkName]
+
+  benchmarks.sort((a, b) => b.date - a.date)
+
+  if (numberOfBenchmarks <= 0 || numberOfBenchmarks > benchmarks.length) {
+    throw new Error(
+      `Cannot return ${numberOfBenchmarks} previous benchmark(s) - insufficient data.`
+    )
+  }
+}
+
+module.exports.checkIfPreviousSuccessfulExists = function(data, benchmarkKey) {
+  console.log(`Checking if previous successful benchmark exists under '${benchmarkKey}'`)
+  if (!data.entries.hasOwnProperty(benchmarkKey)) {
+    throw new Error(`No such benchmark key: '${benchmarkKey}' exists.`);
+  }
+
+  let benchmarks = data.entries[benchmarkKey];
+  let successfulBenchmarkExists = benchmarks.some(benchmark => benchmark.benchSuccessful);
+
+  if (successfulBenchmarkExists) {
+    console.log(`A previous successful benchmark under '${benchmarkKey}' exists.`);
+  } else {
+    console.log(`No successful benchmark under '${benchmarkKey}' exists.`);
+  }
+}
+
+module.exports.validateTrendDetectionDeltasConfig = function () {
+  const trendThresholds = core.getInput('eval_trend_thresholds')
+
+  if (trendThresholds == null) {
+    throw new Error(
+      'trendThresholds must be provided for trend detection.'
+    )
+  }
+
+  const trendThresholdsNum = Number(trendThresholds)
+  if (
+    isNaN(trendThresholdsNum) ||
+    trendThresholdsNum < 0 ||
+    trendThresholdsNum > 100
+  ) {
+    throw new Error('trendThresholds must be a number between 0 and 100.')
+  }
+}
+
+module.exports.checkForWeekOldBenchmark = function(data, benchmarkKey) {
+
+  const ONE_WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
+  const DAY_IN_MS = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  if (!data.entries.hasOwnProperty(benchmarkKey)) {
+    throw new Error(`No such benchmark key: '${benchmarkKey}' exists.`);
+  }
+  let benchmarks = data.entries[benchmarkKey];
+  let weekOldBenchmarkExists = benchmarks.some(benchmark => {
+    let benchmarkAge = now - benchmark.date;
+    return benchmarkAge >= (ONE_WEEK_IN_MS - DAY_IN_MS) && benchmarkAge <= (ONE_WEEK_IN_MS + DAY_IN_MS);
+  });
+
+  if (!weekOldBenchmarkExists) {
+    throw new Error(`No benchmark under '${benchmarkKey}' is approximately one week old.`);
+  } else {
+    console.log(`A benchmark under '${benchmarkKey}' is approximately one week old.`);
+  }
+}
+
+
+module.exports.validateStrategies = function(directory, strategies, outputFile, metricsToEvaluate) {
+  const validStrategies = ['sum', 'average', 'min', 'max', 'median'];
+
+  let evaluatedMetrics;
+  if (metricsToEvaluate) {
+    evaluatedMetrics = metricsToEvaluate.split(',').map(metric => metric.trim());
+    if (evaluatedMetrics.length !== strategies.length) {
+      throw new Error('The number of metrics in metricsToEvaluate does not match the number of provided strategies');
+    }
+  }
+
+
+}
+
+
+
+
+/***/ }),
+
 /***/ 849:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(127)
-
+const { validateInputAndFetchConfig } = __nccwpck_require__(827)
 
 async function run() {
   try {
@@ -2789,49 +3518,34 @@ async function run() {
     const eval_trend_det_no_sufficient_data_strategy = core.getInput('eval_trend_det_no_sufficient_data_strategy')
     const eval_trend_det_successful_release_branch = core.getInput('eval_trend_det_successful_release_branch')
     const evalResultFilesMergeStrategyForEachMetric = core.getInput('eval_result_files_merge_strategy_for_each_metric')
+    const numberOfMetricToEvaluate = core.getInput('number_of_metrics_to_evaluate')
 
-    // deploy_lock_id must be a string
     if (deployLockId && typeof deployLockId !== 'string') {
       core.setFailed('deploy_lock_id must be a string')
     }
 
-    // snr_execution_order must be a string (for example, "deploy" or a comma separated string "deploy, run"
     if (snrExecutionOrder && typeof snrExecutionOrder !== 'string') {
       core.setFailed('snr_execution_order must be a string')
     }
 
-    // deploy_vars_file_path must have .tfvars extension
     if (deploy_vars_file_path && !deploy_vars_file_path.endsWith('.tfvars')) {
       core.setFailed('deploy_vars_file_path must have .tfvars extension')
     }
-
 
     if (evalBucketResultsFolderPath && !evalResultFilesMergeStrategyForEachMetric) {
       core.setFailed('eval_result_files_merge_strategy_for_each_metric must be set if eval_bucket_results_folder_path is set')
     }
 
-    if (evalEvaluationMethod === 'threshold' && (!evalThresholdValues || !evalComparisonOperators || !evalComparisonMargins)) {
-      core.setFailed('eval_threshold_values, eval_comparison_operators, and eval_comparison_margins must be set if eval_evaluation_method is set to thresholds')
-    }
-
-    if (evalEvaluationMethod === 'threshold_range' && (!evalThresholdUpper || !evalThresholdLower)) {
-      core.setFailed('eval_threshold_upper and eval_threshold_lower must be set if eval_evaluation_method is set to threshold_range')
-    }
-
-    if (evalEvaluationMethod === 'previous' || evalEvaluationMethod === 'previous_successful') {
-      if (!evalComparisonOperators || !evalComparisonMargins) {
-        core.setFailed('eval_comparison_operators and eval_comparison_margins must be set if eval_evaluation_method is set to previous or previous_successful')
-      }
-
-
-      if (evalBenchGroupToCompare) {
-        const benchData = module.exports.getCompleteBenchData(evalPreviousDataStorageFolder, fileNameWithBenchData)
-
-        if (!benchData) {
-          core.setFailed(`The file ${evalBenchGroupToCompare} does not exist in the data folder`)
-        }
+    if (evalBucketResultsFolderPath && evalResultFilesMergeStrategyForEachMetric) {
+      const evalResultFilesMergeStrategyForEachMetricArray = evalResultFilesMergeStrategyForEachMetric.split(',').map(s => s.trim())
+      if (evalResultFilesMergeStrategyForEachMetricArray.length !== parseInt(numberOfMetricToEvaluate)) {
+        core.setFailed('eval_result_files_merge_strategy_for_each_metric must have the same number of strategies as the number of metrics to evaluate')
       }
     }
+
+    module.exports.validateInputAndFetchConfig()
+
+
 
 
 
@@ -2840,38 +3554,17 @@ async function run() {
   }
 }
 
-module.exports.getCompleteBenchData = function (
-  folderWithBenchData,
-  fileNameWithBenchData
-)  {
-  core.debug('--- start getCompleteBenchData ---')
-  core.debug('folderWithBenchData: ' + folderWithBenchData)
-  core.debug('fileNameWithBenchData: ' + fileNameWithBenchData)
-  const filePath = path.join(folderWithBenchData, fileNameWithBenchData)
-
-  try {
-    const fileText = fss.readFileSync(filePath, 'utf8')
-
-    const benchmarkData = JSON.parse(fileText)
-
-    if (!benchmarkData || Object.keys(benchmarkData).length === 0) {
-      console.error('BENCHMARK_DATA is empty')
-      return null
-    }
-
-    core.debug('--- end getCompleteBenchData ---')
-    return benchmarkData;
-  } catch (error) {
-    console.error(`There was an error reading the file at ${filePath}.
-       If the file exists, it might be empty. The function will return null.`)
-    console.error('The actual error was:', error)
-    return null
-  }
-}
-
 module.exports = {
   run
 }
+
+
+/***/ }),
+
+/***/ 668:
+/***/ ((module) => {
+
+module.exports = eval("require")("./types");
 
 
 /***/ }),
