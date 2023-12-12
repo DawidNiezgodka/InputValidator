@@ -225,7 +225,7 @@ inputs:
     description: |
     required: false
     default: "any"
-  eval_bench_to_compare:
+  eval_bench_group_to_compare:
     description: |
       The name of the benchmark that will be compared to the current benchmark.
     required: false
