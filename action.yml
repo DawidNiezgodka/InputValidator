@@ -155,7 +155,7 @@ inputs:
   # Evaluation inputs
   #####
 
-  eval_name:
+  eval_bench_group_name:
     description: |
       The name of a specific benchmark. The name will be appended to the data where all
       the benchmark results are stored. The name can be used to change graphs and compare results.
