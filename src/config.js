@@ -34,11 +34,14 @@ module.exports.validateInputAndFetchConfig = function () {
     benchGroupToCompare = benchGroupName
   }
 
-  const folderWithBenchData = core.getInput('eval_folder_with_bench_data')
-  const fileWithBenchData = core.getInput('eval_file_with_bench_data')
+  const eval_branch_with_bench_data = core.getInput('eval_branch_with_bench_data')
+  const evalPreviousDataStorageFolder = core.getInput('eval_previous_data_storage_folder')
+  const evalFileWithPreviousBenchData = core.getInput('eval_file_with_previous_bench_data')
+  //const folderWithBenchData = core.getInput('eval_folder_with_bench_data')
+  //const fileWithBenchData = core.getInput('eval_file_with_bench_data')
   const itemCount = core.getInput('number_of_metrics_to_evaluate')
   module.exports.validateAndFetchEvaluationConfig(itemCount, benchGroupToCompare,
-    folderWithBenchData, fileWithBenchData);
+    evalPreviousDataStorageFolder, evalFileWithPreviousBenchData);
 
   const githubToken = core.getInput('eval_github_token')
 
