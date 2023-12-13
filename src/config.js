@@ -36,7 +36,7 @@ module.exports.validateInputAndFetchConfig = function () {
 
   const evalPreviousDataStorageFolder = core.getInput('eval_previous_data_storage_folder')
   const evalFileWithPreviousBenchData = core.getInput('eval_file_with_previous_bench_data')
-  const itemCount = core.getInput('number_of_metrics_to_evaluate')
+  let itemCount = parseInt(core.getInput('number_of_metrics_to_evaluate'))
   module.exports.validateAndFetchEvaluationConfig(itemCount, benchGroupToCompare,
     evalPreviousDataStorageFolder, evalFileWithPreviousBenchData);
 
