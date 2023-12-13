@@ -34,11 +34,8 @@ module.exports.validateInputAndFetchConfig = function () {
     benchGroupToCompare = benchGroupName
   }
 
-  const eval_branch_with_bench_data = core.getInput('eval_branch_with_bench_data')
   const evalPreviousDataStorageFolder = core.getInput('eval_previous_data_storage_folder')
   const evalFileWithPreviousBenchData = core.getInput('eval_file_with_previous_bench_data')
-  //const folderWithBenchData = core.getInput('eval_folder_with_bench_data')
-  //const fileWithBenchData = core.getInput('eval_file_with_bench_data')
   const itemCount = core.getInput('number_of_metrics_to_evaluate')
   module.exports.validateAndFetchEvaluationConfig(itemCount, benchGroupToCompare,
     evalPreviousDataStorageFolder, evalFileWithPreviousBenchData);
@@ -310,22 +307,24 @@ module.exports.validateJumpDetectionConfig = function (currentResultLength) {
 }
 
 module.exports.validateTrendThreshold = function (currentResultLength) {
+  core.debug(`----- validateTrendThreshold -----`)
   const trendThresholds = core.getInput('eval_trend_thresholds')
-
+  core.debug(`currentResultLength: ${currentResultLength}`)
+  core.debug(`trendThresholds: ${trendThresholds}`)
   if (trendThresholds == null) {
     throw new Error(
-      'Both movingAveWindowSize and trendThresholds must be provided for trend detection with moving average.'
+      'trendThresholds must be provided for trend detection with moving average or trend detection deltas'
     )
   }
 
-  const movingAveThresholdValue = trendThresholds.split(',').map(Number)
+  const thresholdValues = trendThresholds.split(',').map(s => Number(s.trim()));
 
-  if (movingAveThresholdValue.length !== currentResultLength) {
+  if (thresholdValues.length !== currentResultLength) {
     throw new Error(
-      'The number of upper thresholds must match the number metrics.'
+      'The number of thresholds must match the number metrics.'
     )
   }
-  movingAveThresholdValue.forEach(value => {
+  thresholdValues.forEach(value => {
     if (value < 0 || value > 100) {
       throw new Error(`Value ${value} is out of range [0,100]`);
     }
