@@ -64,7 +64,6 @@ async function run() {
     const evalResultFilesMergeStrategyForEachMetric = core.getInput('eval_result_files_merge_strategy_for_each_metric')
     const numberOfMetricToEvaluate = core.getInput('number_of_metrics_to_evaluate')
 
-    // if both evalBucketResultsFolderPath and eval_bucket_result_file_path are both empty, then throw an error
     if (!evalBucketResultsFolderPath && !evalBucketResultFilePath) {
       core.setFailed('eval_bucket_results_folder_path and eval_bucket_result_file_path cannot both be empty')
     }
