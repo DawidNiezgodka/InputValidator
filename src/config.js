@@ -181,7 +181,6 @@ module.exports.validateAndFetchEvaluationConfig = function (currentResultLength,
       break
     case 'trend_detection_deltas':
       module.exports.validateTrendThreshold(currentResultLength);
-      module.exports.checkForWeekOldBenchmark(benchmarkData, benchToCompare);
       module.exports.checkIfNthPreviousBenchmarkExists(benchmarkData, benchToCompare,1);
       break
     default:
