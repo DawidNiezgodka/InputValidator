@@ -35,7 +35,7 @@ async function run() {
     const evalPreviousDataStorageFolder = core.getInput('eval_previous_data_storage_folder')
     const eval_file_with_previous_bench_data = core.getInput('eval_file_with_previous_bench_data')
     const evalBucketResultsFolderPath = core.getInput('eval_bucket_results_folder_path')
-    const eval_bucket_result_file_path = core.getInput('eval_bucket_result_file_path')
+    const evalBucketResultFilePath = core.getInput('eval_bucket_result_file_path')
     const eval_local_download_path_for_results = core.getInput('eval_local_download_path_for_results')
     const eval_save_current_bench_res = core.getInput('eval_save_current_bench_res')
     const eval_add_action_page_job_summary = core.getInput('eval_add_action_page_job_summary')
@@ -64,6 +64,11 @@ async function run() {
     const evalResultFilesMergeStrategyForEachMetric = core.getInput('eval_result_files_merge_strategy_for_each_metric')
     const numberOfMetricToEvaluate = core.getInput('number_of_metrics_to_evaluate')
 
+    // if both evalBucketResultsFolderPath and eval_bucket_result_file_path are both empty, then throw an error
+    if (!evalBucketResultsFolderPath && !evalBucketResultFilePath) {
+      core.setFailed('eval_bucket_results_folder_path and eval_bucket_result_file_path cannot both be empty')
+    }
+
     if (deployLockId && typeof deployLockId !== 'string') {
       core.setFailed('deploy_lock_id must be a string')
     }
@@ -87,7 +92,7 @@ async function run() {
       }
     }
 
-    module.exports.validateInputAndFetchConfig()
+    validateInputAndFetchConfig();
 
 
 
