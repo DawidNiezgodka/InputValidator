@@ -3026,8 +3026,8 @@ module.exports.getBoolInput = function (inputName) {
 }
 
 module.exports.validateInputAndFetchConfig = function () {
-  const benchGroupName = core.getInput('eval_eval_bench_group_name')
-  const failingCondition = core.getInput('eval_eval_failing_condition')
+  const benchGroupName = core.getInput('eval_bench_group_name')
+  const failingCondition = core.getInput('eval_failing_condition')
   if (
     failingCondition !== 'any' &&
     failingCondition !== 'all' &&
