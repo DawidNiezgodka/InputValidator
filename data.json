@@ -1,0 +1,350 @@
+{
+  "lastUpdate": 1699558557994,
+  "repoUrl": "",
+  "entries": {
+    "Benchmark": [
+      {
+        "commit": {
+          "author": {
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "name": "User1",
+            "username": "User1"
+          },
+          "id": "abc",
+          "message": "Test",
+          "timestamp": "2023-09-30T08:05:25Z",
+          "url": "https://github.com/"
+        },
+        "date": 1696168373973,
+        "executionTime": "18 m",
+        "parametrization": {
+          "ack": "3",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 662,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 123000,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 456,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": true
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "22837704+User1@users.noreply.github.com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "id": "abc",
+          "message": "Merge pull request #2 from User1/test\n\nTest",
+          "timestamp": "2023-10-01T15:53:53+02:00",
+          "url": "https://github.com/"
+        },
+        "date": 1696168445437,
+        "executionTime": "18 m",
+        "parametrization": {
+          "ack": "3",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 700,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 111111,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 456,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": true
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "id": "abc",
+          "message": "correct input type",
+          "timestamp": "2023-10-17T17:16:37+02:00",
+          "url": "https://github.com/"
+        },
+        "date": 1697555815604,
+        "executionTime": "18 m",
+        "parametrization": {
+          "ack": "3",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 423,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 121414,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 456,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": true
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "name": "User1",
+            "username": "User1"
+          },
+          "id": "abc",
+          "message": "correct input type",
+          "timestamp": "2023-09-30T08:05:25Z",
+          "url": "https://github.com/"
+        },
+        "date": 1697555861308,
+        "executionTime": "18 m",
+        "parametrization": {
+          "ack": "3",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 13134,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 123456,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 456,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": false
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "id": "abc",
+          "message": "jece",
+          "timestamp": "2023-11-07T10:30:04+01:00",
+          "url": "https://github.com/"
+        },
+        "date": 1699349421308,
+        "executionTime": "1 m",
+        "parametrization": {
+          "ack": "2",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 222,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 222,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 222,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": true
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "id": "abc",
+          "message": "add new func to exisitng file",
+          "timestamp": "2023-11-07T10:56:19+01:00",
+          "url": "https://github.com/"
+        },
+        "date": 1699350995114,
+        "executionTime": "1 m",
+        "parametrization": {
+          "ack": "2",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 222,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 222,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 222,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": true
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "id": "abc",
+          "message": "added a handful of new funcs to known file",
+          "timestamp": "2023-11-07T10:59:56+01:00",
+          "url": "https://github.com/"
+        },
+        "date": 1699351210533,
+        "executionTime": "1 m",
+        "parametrization": {
+          "ack": "2",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 222,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 222,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 222,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": true
+      }
+    ],
+    "Benchmark2": [
+      {
+        "commit": {
+          "author": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "committer": {
+            "email": "user@com",
+            "name": "User1",
+            "username": "User1"
+          },
+          "id": "abc",
+          "message": "fail on output",
+          "timestamp": "2023-10-18T12:21:36+02:00",
+          "url": "https://github.com/"
+        },
+        "date": 1697624514233,
+        "executionTime": "138 m",
+        "parametrization": {
+          "ack": "1",
+          "read-in-ram": true
+        },
+        "otherInfo": "kafka, v2.3",
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 200,
+            "unit": "ms"
+          },
+          {
+            "name": "metric2",
+            "value": 200,
+            "unit": "op/s"
+          },
+          {
+            "name": "metric3",
+            "value": 200,
+            "unit": "%"
+          }
+        ],
+        "benchSuccessful": true
+      }
+    ]
+  }
+}
