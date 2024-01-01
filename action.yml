@@ -10,61 +10,61 @@ inputs:
       that the directory the value points to contains both ansible and terraform folders.
       The main idea behind this input is that you don't have to prepend all the paths
       with the directory name.
-      If you don't want this behaviour, you can use the snr_directory and deploy_directory inputs.
+      If you don't want this behaviour, you can use the snr_directory and infra_directory inputs.
     required: false
   number_of_metrics_to_evaluate:
     description: |
       The number of metrics that will be evaluated
     required: false
   #####
-  # Deployment inputs
+  # infrastructure provisioning inputs
   #####
-  deploy_instance_meta_public_key:
+  infra_instance_meta_public_key:
     description: |
       The public key that will be added to the instance.
       The private part will be used to enable SSH access to the instance 
       and execute Ansible commands (the private key must be set using secrets).
     required: true
-  deploy_custom_inventory_file_path:
+  infra_custom_inventory_file_path:
     description: |
       Whether to use custom Terraform inventory file.
     required: false
     default: 'terraform/templates/hosts.tpl'
-  deploy_vars_file_path:
+  infra_vars_file_path:
     description: |
       Path to Terraform variables file (.tfvars).
     required: true
-  deploy_variables:
+  infra_variables:
     description: A multiline string of Terraform variables (key-value pairs).
     required: false
     default: ''
-  deploy_destroy_after_run:
+  infra_destroy_after_run:
     description: |
       Whether to destroy the infrastructure after the benchmark is finished.
       If this input is set to true, the infrastructure will be destroyed
       regardless of the benchmark result.
     required: false
     default: false
-  deploy_lock_id:
+  infra_lock_id:
     description: |
       If you received an error message that the state file is locked,
       you can use this input to unlock it.
       Please provide the lock id that was given to you in the error message.
     required: false
-  deploy_extra_file_uploaded_name:
+  infra_extra_file_uploaded_name:
     description: |
       Extra file for deploy step.
       The file will be downloaded to the root of the repository
       using download-artifact action.
       This input related to the name of the uploaded artifact.
     required: false
-  deploy_extra_file_name:
+  infra_extra_file_name:
     description: |
       Extra file for deploy step.
       The file will be downloaded to the root of the repository
       using download-artifact action.
     required: false
-  deploy_extra_file_target_path:
+  infra_extra_file_target_path:
     description: |
       Indicates where the extra file shall be moved.
     required: false

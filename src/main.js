@@ -4,15 +4,15 @@ const { validateInputAndFetchConfig } = require('./config')
 async function run() {
   try {
     const benchDir = core.getInput('bench_dir')
-    const deployInstanceMetaPublicKey = core.getInput('deploy_instance_meta_public_key')
-    const deploy_custom_inventory_file_path = core.getInput('deploy_custom_inventory_file_path')
-    const deploy_vars_file_path = core.getInput('deploy_vars_file_path')
-    const deploy_variables = core.getInput('deploy_variables')
-    const deploy_destroy_after_run = core.getInput('deploy_destroy_after_run')
-    const deployLockId = core.getInput('deploy_lock_id')
-    const deploy_extra_file_uploaded_name = core.getInput('deploy_extra_file_uploaded_name')
-    const deploy_extra_file_name = core.getInput('deploy_extra_file_name')
-    const deploy_extra_file_target_path = core.getInput('deploy_extra_file_target_path')
+    const infraInstanceMetaPublicKey = core.getInput('infra_instance_meta_public_key')
+    const infra_custom_inventory_file_path = core.getInput('infra_custom_inventory_file_path')
+    const infra_vars_file_path = core.getInput('infra_vars_file_path')
+    const infra_variables = core.getInput('infra_variables')
+    const infra_destroy_after_run = core.getInput('infra_destroy_after_run')
+    const infraLockId = core.getInput('infra_lock_id')
+    const infra_extra_file_uploaded_name = core.getInput('infra_extra_file_uploaded_name')
+    const infra_extra_file_name = core.getInput('infra_extra_file_name')
+    const infra_extra_file_target_path = core.getInput('infra_extra_file_target_path')
     const snr_existing_config_path = core.getInput('snr_existing_config_path')
     const snr_def_cfg_dir = core.getInput('snr_def_cfg_dir')
     const snr_def_cfg_file_name = core.getInput('snr_def_cfg_file_name')
@@ -68,16 +68,16 @@ async function run() {
       core.setFailed('eval_bucket_results_folder_path and eval_bucket_result_file_path cannot both be empty')
     }
 
-    if (deployLockId && typeof deployLockId !== 'string') {
-      core.setFailed('deploy_lock_id must be a string')
+    if (infraLockId && typeof infraLockId !== 'string') {
+      core.setFailed('infra_lock_id must be a string')
     }
 
     if (snrExecutionOrder && typeof snrExecutionOrder !== 'string') {
       core.setFailed('snr_execution_order must be a string')
     }
 
-    if (deploy_vars_file_path && !deploy_vars_file_path.endsWith('.tfvars')) {
-      core.setFailed('deploy_vars_file_path must have .tfvars extension')
+    if (infra_vars_file_path && !infra_vars_file_path.endsWith('.tfvars')) {
+      core.setFailed('infra_vars_file_path must have .tfvars extension')
     }
 
     if (evalBucketResultsFolderPath && !evalResultFilesMergeStrategyForEachMetric) {
