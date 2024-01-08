@@ -29,10 +29,10 @@ jobs:
         with:
           bench_dir: bench/
           number_of_metrics_to_evaluate: 2
-          deploy_instance_meta_public_key: terraform/publickeys/public_key.pub
-          deploy_custom_inventory_file_path: terraform/templates/hosts.tpl
-          deploy_vars_file_path: terraform/input.tfvars
-          deploy_destroy_after_run: true
+          infra_instance_meta_public_key: terraform/publickeys/public_key.pub
+          infra_custom_inventory_file_path: terraform/templates/hosts.tpl
+          infra_vars_file_path: terraform/input.tfvars
+          infra_destroy_after_run: true
           snr_extra_file_uploaded_name: updated_all_file
           snr_extra_file_name: all
           snr_extra_file_target_path: ./bench/ansible/group_vars/all

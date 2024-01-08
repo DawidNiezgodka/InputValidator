@@ -2753,7 +2753,6 @@ module.exports.addCompleteBenchmarkToFile = async (
     core.debug(`Reading file at ${pathToPreviousDataFile}`)
     try {
       const data = await fs.readFile(pathToPreviousDataFile, 'utf8')
-      //core.debug('Read file: ' + data) // -> can be very long...
       jsonData = JSON.parse(data)
     } catch (err) {
       core.debug(
@@ -2955,13 +2954,8 @@ module.exports.getBenchFromWeekAgo = function (benchToCompare, folderWithBenchDa
   );
 
   let benchmarks = data.entries[benchToCompare];
-  // Print the amount of benchmarks
-
   let closestBenchmark = null;
   let smallestDifference = Infinity;
-
-
-
   benchmarks.forEach(benchmark => {
     let difference = Math.abs(now - benchmark.date - ONE_WEEK_IN_MS);
     if (difference < smallestDifference) {
@@ -2987,7 +2981,6 @@ module.exports.getBenchmarkOfStableBranch = function (benchToCompare, folderWith
     folderWithBenchData, fileNameWithBenchData
   );
   let benchmarks = data.entries[benchToCompare];
-  // find benchmark with commit sha == latestBenchSha
   let benchmark = benchmarks.find(benchmark => benchmark.commit.id === latestBenchSha);
   core.debug(`Benchmark of stable branch: ${JSON.stringify(benchmark)}`);
 
@@ -2998,8 +2991,6 @@ module.exports.getBenchmarkOfStableBranch = function (benchToCompare, folderWith
     return convertBenchDataToCompleteBenchmarkInstance(benchmark, benchToCompare);
   }
 }
-
-
 
 
 /***/ }),
@@ -3106,7 +3097,6 @@ module.exports.camelToSnake = function (string) {
 
 module.exports.validateAndFetchEvaluationConfig = function (currentResultLength,benchToCompare,
                                                             folderWithBenchData, fileWithBenchData) {
-  // Evaluation method
   const evaluationMethod = core.getInput('eval_evaluation_method', { required: true })
   const validEvaluationMethods = [
     'threshold',
@@ -3342,7 +3332,6 @@ module.exports.validateTrendThreshold = function (currentResultLength) {
 module.exports.validateTrendDetectionMovingAveConfig = function (currentResultLength) {
   module.exports.validateTrendThreshold(currentResultLength);
 
-  // window size part
   const movingAveWindowSize = core.getInput('eval_moving_ave_window_size')
   if (movingAveWindowSize == null) {
     throw new Error(
@@ -3547,13 +3536,7 @@ async function run() {
         core.setFailed('eval_result_files_merge_strategy_for_each_metric must have the same number of strategies as the number of metrics to evaluate')
       }
     }
-
     validateInputAndFetchConfig();
-
-
-
-
-
   } catch (error) {
     core.setFailed(error.message)
   }

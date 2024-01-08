@@ -97,7 +97,6 @@ module.exports.camelToSnake = function (string) {
 
 module.exports.validateAndFetchEvaluationConfig = function (currentResultLength,benchToCompare,
                                                             folderWithBenchData, fileWithBenchData) {
-  // Evaluation method
   const evaluationMethod = core.getInput('eval_evaluation_method', { required: true })
   const validEvaluationMethods = [
     'threshold',
@@ -333,7 +332,6 @@ module.exports.validateTrendThreshold = function (currentResultLength) {
 module.exports.validateTrendDetectionMovingAveConfig = function (currentResultLength) {
   module.exports.validateTrendThreshold(currentResultLength);
 
-  // window size part
   const movingAveWindowSize = core.getInput('eval_moving_ave_window_size')
   if (movingAveWindowSize == null) {
     throw new Error(

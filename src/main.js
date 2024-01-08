@@ -90,13 +90,7 @@ async function run() {
         core.setFailed('eval_result_files_merge_strategy_for_each_metric must have the same number of strategies as the number of metrics to evaluate')
       }
     }
-
     validateInputAndFetchConfig();
-
-
-
-
-
   } catch (error) {
     core.setFailed(error.message)
   }

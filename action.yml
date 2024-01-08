@@ -1,6 +1,6 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Input Validator'
+description: 'An action encapsulating the Validation Step of the CB-Framework'
+author: 'Dawid Niezgódka'
 
 inputs:
   bench_dir:
@@ -312,10 +312,6 @@ inputs:
       This should be a comma separated list of strategies. Each strategy corresponds to a metric.
       The possible values are: sum, average, max, min, median.
     required: false
-
-outputs:
-  time:
-    description: 'Your output description here'
 
 runs:
   using: node20
